@@ -29,17 +29,21 @@ function generateReport(request,response){
 
     let updatedCard = cardsWithFullDetails;
 
+    updatedCard = updatedCard.map(card=>{    
+        const matched = lists.find(list=> card.idList == list.id)
+        if (matched){
+            card.updatedListName = matched.name //add updated list name to the card obj
+            return {...card}
+        } 
+    })
+    
     //list
     const status = request.query.status;
     const arrStatus = objStatus[status];
     if (status){
-        updatedCard = updatedCard.filter(card=>{    
-            const matched = lists.find(list=> arrStatus.includes(list.name) && card.idList == list.id)
-            if (matched){
-                card.updatedListName = matched.name //add updated list name to the card obj
-                return {...card}
-            } 
-        })
+        updatedCard = updatedCard.filter(card=>
+            arrStatus.includes(card.updatedListName)
+        )
     }
 
     //label
