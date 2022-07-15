@@ -1,6 +1,7 @@
 //Declaration
 const _ = require('lodash');
-const axios = require('axios')
+const axios = require('axios');
+const { each } = require('lodash');
 const url = 'https://api.trello.com/1/boards/609f488638122f7a82bf31b4?key=e4ca0224f7ed7ba9dceac38b122ef10e&token=22dc795b770cc5fe1a66ee042ebd69caec1a8276917963e6ececd5ac20263ccd&fields=all&actions=all&action_fields=all&actions_limit=1000&cards=all&card_fields=all&card_attachments=true&labels=all&lists=all&list_fields=all&members=all&member_fields=all&checklists=all&checklist_fields=all&organization=false'
 
 const catchError = (error) => {
@@ -87,10 +88,31 @@ function generateReport(request,response){
             const createdDate = new Date(data.date)
             return createdDate.toLocaleString('default', { month: 'long' })
         });
+    }
 
-        //to display number of cards created
-        for (let cardInMonth in sortedCard[cardStatus]){
-            sortedCard[cardStatus][cardInMonth] = _.size(sortedCard[cardStatus][cardInMonth]);
+    //Group by label
+    for (let cardStatus in sortedCard){
+        for (let cardMonth in sortedCard[cardStatus])
+        {
+            sortedCard[cardStatus][cardMonth] = _.groupBy(sortedCard[cardStatus][cardMonth], data=>{
+                labelList = data.labels
+                if(labelList.length > 0){
+                    for (var b=0 ; b<labelList.length; b++)
+                    {
+                        //console.log(labelList.length + " and this is " + b)
+                        //console.log(labelStatus[b].name)
+                        return labelList[b].name
+                    }
+                }
+                else{
+                    return "No Label"
+                }
+            })
+
+            //to display number of cards created
+            for (let labelList in sortedCard[cardStatus][cardMonth]){
+                sortedCard[cardStatus][cardMonth][labelList] = _.size(sortedCard[cardStatus][cardMonth][labelList]);
+            }
         }
     }
     response.json(sortedCard);
