@@ -24,58 +24,54 @@ class CardController {
     //End of filter
 
     //Group by list
-    var groupedCardMap = _.groupBy(updatedCards, "updatedListName");
+    let groupedCardMap = _.groupBy(updatedCards, "updatedListName");
 
     //Group by month of card created
     for (let cardStatus in groupedCardMap) {
-      groupedCardMap[cardStatus] = _.groupBy(groupedCardMap[cardStatus], (data) => {
-        const createdDate = new Date(data.date);
-        return createdDate.toLocaleString("default", { month: "long" });
-      });
+      const cards = groupedCardMap[cardStatus];
+      groupedCardMap[cardStatus] = this.groupByMonth(cards, cardStatus);
     }
 
     //Group by label
-    let arrLabel = [];
+    let labelNames = [];
     for (let cardStatus in groupedCardMap) {
       for (let cardMonth in groupedCardMap[cardStatus]) {
         //put label list into array
-        var result = groupedCardMap[cardStatus][cardMonth]; //store array of obj created on certain month to variable
-        _.forEach(result, (eachCard) => {
+        let cards = groupedCardMap[cardStatus][cardMonth]; //store array of obj created on certain month to letiable
+        _.forEach(cards, (card) => {
           //each card in the result array under certain month
-          if (eachCard.labels.length > 0) {
-            _.forEach(eachCard.labels, (labelList) => {
-              //for each item in the labels array of certain card
-              if (!_.includes(arrLabel, labelList.name)) {
-                arrLabel.push(labelList.name);
-              }
-            });
+          if (card.labels.length > 0) {
+            const filteredLableNames = card.labels
+              .filter((label) => !labelNames.includes(label.name))
+              .map((label) => label.name);
+            labelNames = labelNames.concat(filteredLableNames);
           }
         });
 
         //add list key to sorted array + add value
-        var arrCard = groupedCardMap[cardStatus][cardMonth]; //array of cards under certain month
-        var objCardByLabel = {};
+        let arrCard = groupedCardMap[cardStatus][cardMonth]; //array of cards under certain month
+        let objCardByLabel = {};
         arrCard.forEach((eachCard) => {
           //run through each card
-          var labelList = eachCard.labels;
+          let labelList = eachCard.labels;
           if (labelList.length > 0) {
             //if got label
-            for (var b = 0; b < labelList.length; b++) {
+            for (let b = 0; b < labelList.length; b++) {
               //each label of current card
-              if (arrLabel.includes(labelList[b].name)) {
-                var index = arrLabel.indexOf(labelList[b].name);
-                if (arrLabel[index] in objCardByLabel) {
-                  var arr = objCardByLabel[arrLabel[index]];
+              if (labelNames.includes(labelList[b].name)) {
+                let index = labelNames.indexOf(labelList[b].name);
+                if (labelNames[index] in objCardByLabel) {
+                  let arr = objCardByLabel[labelNames[index]];
                   arr.push(eachCard.name);
-                  objCardByLabel[arrLabel[index]] = arr;
+                  objCardByLabel[labelNames[index]] = arr;
                 } else {
-                  objCardByLabel[arrLabel[index]] = [eachCard.name];
+                  objCardByLabel[labelNames[index]] = [eachCard.name];
                 }
               }
             }
           } else {
             if ("No Label" in objCardByLabel) {
-              var arr = objCardByLabel["No Label"];
+              let arr = objCardByLabel["No Label"];
               arr.push(eachCard.name);
               objCardByLabel["No Label"] = arr;
             } else {
@@ -96,6 +92,13 @@ class CardController {
     }
 
     response.json(groupedCardMap);
+  }
+
+  groupByMonth(cards, cardStatus) {
+    return _.groupBy(cards, (card) => {
+      const createdDate = new Date(card.date);
+      return createdDate.toLocaleString("default", { month: "long" });
+    });
   }
 
   filterByDateRange(updatedCards, fromDate, toDate) {
