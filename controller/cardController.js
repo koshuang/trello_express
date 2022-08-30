@@ -32,7 +32,60 @@ class CardController {
       groupedCardMap[cardStatus] = this.groupByMonth(cards, cardStatus);
     }
 
+    // get all labels
+
+    let labelNames = this.extractAllLabelNames(groupedCardMap);
+
     //Group by label
+    for (let cardStatus in groupedCardMap) {
+      for (let cardMonth in groupedCardMap[cardStatus]) {
+        //add list key to sorted array + add value
+        let monthlyCards = groupedCardMap[cardStatus][cardMonth]; //array of cards under certain month
+        let labelCardsMap = {};
+        monthlyCards.forEach((card) => {
+          //run through each card
+          let labels = card.labels;
+          if (labels.length > 0) {
+            //if got label
+            for (let label of labels) {
+              //each label of current card
+              if (labelNames.includes(label.name)) {
+                let index = labelNames.indexOf(label.name);
+                const labelName = labelNames[index];
+                const arr = labelCardsMap[labelName] ?? [];
+
+                labelCardsMap[labelName] = [
+                  ...arr,
+                  card.name
+                ];
+              }
+            }
+          } else {
+            if ("No Label" in labelCardsMap) {
+              let arr = labelCardsMap["No Label"];
+              arr.push(card.name);
+              labelCardsMap["No Label"] = arr;
+            } else {
+              labelCardsMap["No Label"] = [card.name];
+            }
+          }
+        });
+
+        groupedCardMap[cardStatus][cardMonth] = labelCardsMap;
+
+        //to display number of cards created
+        for (let labelList in groupedCardMap[cardStatus][cardMonth]) {
+          groupedCardMap[cardStatus][cardMonth][labelList] = _.size(
+            groupedCardMap[cardStatus][cardMonth][labelList]
+          );
+        }
+      }
+    }
+
+    response.json(groupedCardMap);
+  }
+
+  extractAllLabelNames(groupedCardMap) {
     let labelNames = [];
     for (let cardStatus in groupedCardMap) {
       for (let cardMonth in groupedCardMap[cardStatus]) {
@@ -47,51 +100,9 @@ class CardController {
             labelNames = labelNames.concat(filteredLableNames);
           }
         });
-
-        //add list key to sorted array + add value
-        let arrCard = groupedCardMap[cardStatus][cardMonth]; //array of cards under certain month
-        let objCardByLabel = {};
-        arrCard.forEach((eachCard) => {
-          //run through each card
-          let labelList = eachCard.labels;
-          if (labelList.length > 0) {
-            //if got label
-            for (let b = 0; b < labelList.length; b++) {
-              //each label of current card
-              if (labelNames.includes(labelList[b].name)) {
-                let index = labelNames.indexOf(labelList[b].name);
-                if (labelNames[index] in objCardByLabel) {
-                  let arr = objCardByLabel[labelNames[index]];
-                  arr.push(eachCard.name);
-                  objCardByLabel[labelNames[index]] = arr;
-                } else {
-                  objCardByLabel[labelNames[index]] = [eachCard.name];
-                }
-              }
-            }
-          } else {
-            if ("No Label" in objCardByLabel) {
-              let arr = objCardByLabel["No Label"];
-              arr.push(eachCard.name);
-              objCardByLabel["No Label"] = arr;
-            } else {
-              objCardByLabel["No Label"] = [eachCard.name];
-            }
-          }
-        });
-
-        groupedCardMap[cardStatus][cardMonth] = objCardByLabel;
-
-        //to display number of cards created
-        for (let labelList in groupedCardMap[cardStatus][cardMonth]) {
-          groupedCardMap[cardStatus][cardMonth][labelList] = _.size(
-            groupedCardMap[cardStatus][cardMonth][labelList]
-          );
-        }
       }
     }
-
-    response.json(groupedCardMap);
+    return labelNames;
   }
 
   groupByMonth(cards, cardStatus) {
