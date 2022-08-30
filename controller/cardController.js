@@ -11,7 +11,7 @@ class CardController {
 
     const { cards, actions, lists } = board;
 
-    let updatedCards = this.getCardsWithFullDetails(cards, actions);
+    let updatedCards = this.appendCreatedDate(cards, actions);
 
     updatedCards = this.appendListName(updatedCards, lists);
 
@@ -92,18 +92,18 @@ class CardController {
 
   groupByMonth(cards, cardStatus) {
     return _.groupBy(cards, (card) => {
-      const createdDate = new Date(card.date);
+      const createdDate = new Date(card.createdDate);
       return createdDate.toLocaleString("default", { month: "long" });
     });
   }
 
   filterByDateRange(updatedCards, fromDate, toDate) {
     if (fromDate) {
-      updatedCards = updatedCards.filter((card) => card.date >= fromDate);
+      updatedCards = updatedCards.filter((card) => card.createdDate >= fromDate);
     }
 
     if (toDate) {
-      updatedCards = updatedCards.filter((card) => card.date <= toDate);
+      updatedCards = updatedCards.filter((card) => card.createdDate <= toDate);
     }
     return updatedCards;
   }
@@ -159,16 +159,17 @@ class CardController {
    * @param {array} actions
    * @returns {array}
    */
-  getCardsWithFullDetails(cards, actions) {
+  appendCreatedDate(cards, actions) {
     return cards.map((card) => {
-      const matched = actions.find(
+      const action = actions.find(
         (action) =>
           (action.type == "createCard" || action.type == "copyCard") &&
           action.data.card.id === card.id
       );
-      if (matched) {
-        return { ...card, ...matched };
-      }
+      return {
+        ...card,
+        createdDate: action?.date,
+      };
     });
   }
 }
