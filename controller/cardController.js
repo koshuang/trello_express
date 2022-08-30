@@ -5,21 +5,11 @@ const { each } = require("lodash");
 
 class CardController {
   async generateReport(request, response) {
-    let board = await trelloAdapter.getBoard();
+    const { from: fromDate, to: toDate, status, label } = request.query;
+
+    const board = await trelloAdapter.getBoard();
 
     const { cards, actions, lists } = board;
-
-    //Map created card with date
-    const cardsWithFullDetails = cards.map((card) => {
-      const matched = actions.find(
-        (action) =>
-          (action.type == "createCard" || action.type == "copyCard") &&
-          action.data.card.id === card.id
-      );
-      if (matched) {
-        return { ...card, ...matched };
-      }
-    });
 
     const objStatus = {
       Info: ["General Info", "Template"],
@@ -28,31 +18,22 @@ class CardController {
       Done: ["Closed", "Classes", "Done"],
     };
 
-    let updatedCard = cardsWithFullDetails;
+    let updatedCards = this.getCardsWithFullDetails(cards, actions);
 
-    //Add updated list name to the card obj
-    updatedCard = updatedCard.map((card) => {
-      const matched = lists.find((list) => card.idList == list.id);
-      if (matched) {
-        card.updatedListName = matched.name;
-        return { ...card };
-      }
-    });
+    updatedCards = this.appendListName(updatedCards, lists);
 
     //Filter
     //list
-    const status = request.query.status;
     const arrStatus = objStatus[status];
     if (status) {
-      updatedCard = updatedCard.filter((card) =>
+      updatedCards = updatedCards.filter((card) =>
         arrStatus.includes(card.updatedListName)
       );
     }
 
     //label
-    const label = request.query.label;
     if (label) {
-      updatedCard = updatedCard.filter((card) => {
+      updatedCards = updatedCards.filter((card) => {
         const cardLabels = card.labels;
         const labelExist = cardLabels.some(
           (labelOfCard) => labelOfCard.name == label
@@ -63,21 +44,17 @@ class CardController {
       });
     }
 
-    //from Date
-    const fromDate = request.query.from;
     if (fromDate) {
-      updatedCard = updatedCard.filter((card) => card.date >= fromDate);
+      updatedCards = updatedCards.filter((card) => card.date >= fromDate);
     }
 
-    //to Date
-    const toDate = request.query.to;
     if (toDate) {
-      updatedCard = updatedCard.filter((card) => card.date <= toDate);
+      updatedCards = updatedCards.filter((card) => card.date <= toDate);
     }
     //End of filter
 
     //Group by list
-    var sortedCard = _.groupBy(updatedCard, "updatedListName");
+    var sortedCard = _.groupBy(updatedCards, "updatedListName");
 
     //Group by month of card created
     for (let cardStatus in sortedCard) {
@@ -150,7 +127,37 @@ class CardController {
 
     response.json(sortedCard);
   }
-}
 
+  appendListName(updatedCards, lists) {
+    return updatedCards.map((card) => {
+      const matched = lists.find((list) => card.idList == list.id);
+
+      return {
+        updatedListName: matched?.name,
+        ...card,
+      };
+    });
+  }
+
+  /**
+   * Map created card with date
+   *
+   * @param {array} cards
+   * @param {array} actions
+   * @returns {array}
+   */
+  getCardsWithFullDetails(cards, actions) {
+    return cards.map((card) => {
+      const matched = actions.find(
+        (action) =>
+          (action.type == "createCard" || action.type == "copyCard") &&
+          action.data.card.id === card.id
+      );
+      if (matched) {
+        return { ...card, ...matched };
+      }
+    });
+  }
+}
 
 module.exports = new CardController();
