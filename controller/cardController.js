@@ -5,60 +5,30 @@ const { each } = require("lodash");
 
 class CardController {
   async generateReport(request, response) {
-    const { from: fromDate, to: toDate, status, label } = request.query;
+    const { from, to, status, label } = request.query;
 
     const board = await trelloAdapter.getBoard();
 
     const { cards, actions, lists } = board;
 
-    const objStatus = {
-      Info: ["General Info", "Template"],
-      Todo: ["Todo"],
-      InProgress: ["In Progress", "Reviewing"],
-      Done: ["Closed", "Classes", "Done"],
-    };
-
     let updatedCards = this.getCardsWithFullDetails(cards, actions);
 
     updatedCards = this.appendListName(updatedCards, lists);
 
-    //Filter
-    //list
-    const arrStatus = objStatus[status];
-    if (status) {
-      updatedCards = updatedCards.filter((card) =>
-        arrStatus.includes(card.updatedListName)
-      );
-    }
+    updatedCards = this.filterByStatus(updatedCards, status);
 
     //label
-    if (label) {
-      updatedCards = updatedCards.filter((card) => {
-        const cardLabels = card.labels;
-        const labelExist = cardLabels.some(
-          (labelOfCard) => labelOfCard.name == label
-        );
-        if (labelExist) {
-          return card;
-        }
-      });
-    }
+    updatedCards = this.filterByLabel(updatedCards, label);
 
-    if (fromDate) {
-      updatedCards = updatedCards.filter((card) => card.date >= fromDate);
-    }
-
-    if (toDate) {
-      updatedCards = updatedCards.filter((card) => card.date <= toDate);
-    }
+    updatedCards = this.filterByDateRange(updatedCards, from, to);
     //End of filter
 
     //Group by list
-    var sortedCard = _.groupBy(updatedCards, "updatedListName");
+    var groupedCardMap = _.groupBy(updatedCards, "updatedListName");
 
     //Group by month of card created
-    for (let cardStatus in sortedCard) {
-      sortedCard[cardStatus] = _.groupBy(sortedCard[cardStatus], (data) => {
+    for (let cardStatus in groupedCardMap) {
+      groupedCardMap[cardStatus] = _.groupBy(groupedCardMap[cardStatus], (data) => {
         const createdDate = new Date(data.date);
         return createdDate.toLocaleString("default", { month: "long" });
       });
@@ -66,10 +36,10 @@ class CardController {
 
     //Group by label
     let arrLabel = [];
-    for (let cardStatus in sortedCard) {
-      for (let cardMonth in sortedCard[cardStatus]) {
+    for (let cardStatus in groupedCardMap) {
+      for (let cardMonth in groupedCardMap[cardStatus]) {
         //put label list into array
-        var result = sortedCard[cardStatus][cardMonth]; //store array of obj created on certain month to variable
+        var result = groupedCardMap[cardStatus][cardMonth]; //store array of obj created on certain month to variable
         _.forEach(result, (eachCard) => {
           //each card in the result array under certain month
           if (eachCard.labels.length > 0) {
@@ -83,7 +53,7 @@ class CardController {
         });
 
         //add list key to sorted array + add value
-        var arrCard = sortedCard[cardStatus][cardMonth]; //array of cards under certain month
+        var arrCard = groupedCardMap[cardStatus][cardMonth]; //array of cards under certain month
         var objCardByLabel = {};
         arrCard.forEach((eachCard) => {
           //run through each card
@@ -114,18 +84,62 @@ class CardController {
           }
         });
 
-        sortedCard[cardStatus][cardMonth] = objCardByLabel;
+        groupedCardMap[cardStatus][cardMonth] = objCardByLabel;
 
         //to display number of cards created
-        for (let labelList in sortedCard[cardStatus][cardMonth]) {
-          sortedCard[cardStatus][cardMonth][labelList] = _.size(
-            sortedCard[cardStatus][cardMonth][labelList]
+        for (let labelList in groupedCardMap[cardStatus][cardMonth]) {
+          groupedCardMap[cardStatus][cardMonth][labelList] = _.size(
+            groupedCardMap[cardStatus][cardMonth][labelList]
           );
         }
       }
     }
 
-    response.json(sortedCard);
+    response.json(groupedCardMap);
+  }
+
+  filterByDateRange(updatedCards, fromDate, toDate) {
+    if (fromDate) {
+      updatedCards = updatedCards.filter((card) => card.date >= fromDate);
+    }
+
+    if (toDate) {
+      updatedCards = updatedCards.filter((card) => card.date <= toDate);
+    }
+    return updatedCards;
+  }
+
+  filterByLabel(updatedCards, label) {
+    if (label) {
+      updatedCards = updatedCards.filter((card) => {
+        const cardLabels = card.labels;
+        const labelExist = cardLabels.some(
+          (labelOfCard) => labelOfCard.name == label
+        );
+        if (labelExist) {
+          return card;
+        }
+      });
+    }
+    return updatedCards;
+  }
+
+  filterByStatus(updatedCards, status) {
+    const objStatus = {
+      Info: ["General Info", "Template"],
+      Todo: ["Todo"],
+      InProgress: ["In Progress", "Reviewing"],
+      Done: ["Closed", "Classes", "Done"],
+    };
+
+    //Filter
+    //list
+    const arrStatus = objStatus[status];
+    if (status) {
+      updatedCards = updatedCards.filter((card) => arrStatus.includes(card.updatedListName)
+      );
+    }
+    return updatedCards;
   }
 
   appendListName(updatedCards, lists) {
