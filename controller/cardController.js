@@ -11,16 +11,16 @@ class CardController {
 
     const { cards, actions, lists } = board;
 
-    let updatedCards = this.appendCreatedDate(cards, actions);
+    let updatedCards = this.appendDetailInfo(cards, actions, lists);
 
-    updatedCards = this.appendListName(updatedCards, lists);
+    updatedCards = this.filterCards(updatedCards, status, label, from, to);
 
-    updatedCards = this.filterByStatus(updatedCards, status);
+    let groupedCardMap = this.groupCards(updatedCards);
 
-    updatedCards = this.filterByLabel(updatedCards, label);
+    response.json(groupedCardMap);
+  }
 
-    updatedCards = this.filterByDateRange(updatedCards, from, to);
-
+  groupCards(updatedCards) {
     let groupedCardMap = _.groupBy(updatedCards, "updatedListName");
 
     //Group by month of card created
@@ -39,8 +39,23 @@ class CardController {
         groupedCardMap[cardStatus][cardMonth] = labelCardNumbersMap;
       }
     }
+    return groupedCardMap;
+  }
 
-    response.json(groupedCardMap);
+  filterCards(updatedCards, status, label, from, to) {
+    updatedCards = this.filterByStatus(updatedCards, status);
+
+    updatedCards = this.filterByLabel(updatedCards, label);
+
+    updatedCards = this.filterByDateRange(updatedCards, from, to);
+    return updatedCards;
+  }
+
+  appendDetailInfo(cards, actions, lists) {
+    let updatedCards = this.appendCreatedDate(cards, actions);
+
+    updatedCards = this.appendListName(updatedCards, lists);
+    return updatedCards;
   }
 
   getMonthlyLabelCardNumbersMap(groupedCardMap, cardStatus, cardMonth, labelNames) {
