@@ -1,160 +1,192 @@
 //Declaration
-const _ = require('lodash');
-const axios = require('axios');
-const { each } = require('lodash');
-const url = 'https://api.trello.com/1/boards/609f488638122f7a82bf31b4?key=e4ca0224f7ed7ba9dceac38b122ef10e&token=22dc795b770cc5fe1a66ee042ebd69caec1a8276917963e6ececd5ac20263ccd&fields=all&actions=all&action_fields=all&actions_limit=1000&cards=all&card_fields=all&card_attachments=true&labels=all&lists=all&list_fields=all&members=all&member_fields=all&checklists=all&checklist_fields=all&organization=false'
+const _ = require("lodash");
+const { trelloAdapter } = require("../adapters/trelloAdapter");
+const { each } = require("lodash");
 
-const catchError = (error) => {
-    console.error(error)
+class CardController {
+  async generateReport(request, response) {
+    const { from, to, status, label } = request.query;
+
+    const board = await trelloAdapter.getBoard();
+
+    const { cards, actions, lists } = board;
+
+    let updatedCards = this.appendDetailInfo(cards, actions, lists);
+
+    updatedCards = this.filterCards(updatedCards, status, label, from, to);
+
+    let groupedCardMap = this.groupCards(updatedCards);
+
+    response.json(groupedCardMap);
   }
 
-function generateReport(request,response){
-  const parseTrello = (res) => {
-    const cards = res.data.cards
-    const actions = res.data.actions
-    const lists = res.data.lists
-
-    //Map created card with date
-    const cardsWithFullDetails= cards.map(card => {
-        const matched = actions.find(action => (action.type == 'createCard' || action.type == 'copyCard') && action.data.card.id === card.id);
-        if (matched){
-            return {...card,...matched}
-        }
-    })
-
-    const objStatus = {
-        Info:["General Info", "Template"],
-        Todo:["Todo"],
-        InProgress:["In Progress", "Reviewing"],
-        Done:["Closed","Classes","Done"]
-    }
-
-    let updatedCard = cardsWithFullDetails;
-
-    //Add updated list name to the card obj
-    updatedCard = updatedCard.map(card=>{    
-        const matched = lists.find(list=> card.idList == list.id)
-        if (matched){
-            card.updatedListName = matched.name
-            return {...card}
-        } 
-    })
-    
-    //Filter
-    //list
-    const status = request.query.status;
-    const arrStatus = objStatus[status];
-    if (status){
-        updatedCard = updatedCard.filter(card=>
-            arrStatus.includes(card.updatedListName)
-        )
-    }
-
-    //label
-    const label = request.query.label;
-    if (label){
-        updatedCard = updatedCard.filter(card=>{
-            const cardLabels = card.labels
-            const labelExist = cardLabels.some(labelOfCard => labelOfCard.name == label)
-            if (labelExist){
-                return card
-            }
-        })
-    }
-
-    //from Date
-    const fromDate = request.query.from;
-    if (fromDate){
-        updatedCard = updatedCard.filter(card=>
-            card.date >= fromDate
-        )
-    }
-
-    //to Date
-    const toDate = request.query.to;
-    if (toDate){
-        updatedCard = updatedCard.filter(card=>
-            card.date <= toDate
-        )
-    }
-    //End of filter
-
-    //Group by list
-    var sortedCard = _.groupBy(updatedCard,'updatedListName');
+  groupCards(updatedCards) {
+    let groupedCardMap = _.groupBy(updatedCards, "updatedListName");
 
     //Group by month of card created
-    for (let cardStatus in sortedCard){
-        sortedCard[cardStatus] =_.groupBy(sortedCard[cardStatus], data=>{
-            const createdDate = new Date(data.date)
-            return createdDate.toLocaleString('default', { month: 'long' })
-        });
+    for (let cardStatus in groupedCardMap) {
+      const cards = groupedCardMap[cardStatus];
+      groupedCardMap[cardStatus] = this.groupByMonth(cards, cardStatus);
     }
+
+    let labelNames = this.extractAllLabelNames(groupedCardMap);
 
     //Group by label
-    let arrLabel = []
-    for (let cardStatus in sortedCard){
-        for (let cardMonth in sortedCard[cardStatus])
-        {
-            //put label list into array
-            var result = sortedCard[cardStatus][cardMonth] //store array of obj created on certain month to variable
-            _.forEach(result, eachCard =>{ //each card in the result array under certain month
-                if (eachCard.labels.length > 0){
-                    _.forEach(eachCard.labels, labelList=>{ //for each item in the labels array of certain card
-                        if(!_.includes(arrLabel, labelList.name)){
-                            arrLabel.push(labelList.name)
-                        }
-                    })
-                }
-            })
+    for (let cardStatus in groupedCardMap) {
+      for (let cardMonth in groupedCardMap[cardStatus]) {
+        //add list key to sorted array + add value
+        const labelCardNumbersMap = this.getMonthlyLabelCardNumbersMap(groupedCardMap, cardStatus, cardMonth, labelNames);
+        groupedCardMap[cardStatus][cardMonth] = labelCardNumbersMap;
+      }
+    }
+    return groupedCardMap;
+  }
 
-            //add list key to sorted array + add value
-            var arrCard = sortedCard[cardStatus][cardMonth] //array of cards under certain month
-            var objCardByLabel = {}
-            arrCard.forEach(eachCard =>{ //run through each card
-                var labelList = eachCard.labels
-                if(labelList.length > 0){ //if got label
-                    for (var b=0 ; b<labelList.length; b++){ //each label of current card
-                        if (arrLabel.includes(labelList[b].name)){
-                            var index = arrLabel.indexOf(labelList[b].name)
-                            if (arrLabel[index] in objCardByLabel){
-                                var arr = objCardByLabel[arrLabel[index]]
-                                arr.push(eachCard.name)
-                                objCardByLabel[arrLabel[index]] = arr
-                            }
-                            else{
-                                objCardByLabel[arrLabel[index]] = [eachCard.name]
-                            }
-                        }
-                    }
-                }
-                else{
-                    if ("No Label" in objCardByLabel){
-                        var arr = objCardByLabel["No Label"]
-                        arr.push(eachCard.name)
-                        objCardByLabel["No Label"] = arr
-                    }
-                    else{
-                        objCardByLabel["No Label"] = [eachCard.name]
-                    }
-                }
-            })
+  filterCards(updatedCards, status, label, from, to) {
+    updatedCards = this.filterByStatus(updatedCards, status);
 
-            sortedCard[cardStatus][cardMonth] = objCardByLabel
-        
-            //to display number of cards created
-            for (let labelList in sortedCard[cardStatus][cardMonth]){
-                sortedCard[cardStatus][cardMonth][labelList] = _.size(sortedCard[cardStatus][cardMonth][labelList]);
-            }
+    updatedCards = this.filterByLabel(updatedCards, label);
+
+    updatedCards = this.filterByDateRange(updatedCards, from, to);
+    return updatedCards;
+  }
+
+  appendDetailInfo(cards, actions, lists) {
+    let updatedCards = this.appendCreatedDate(cards, actions);
+
+    updatedCards = this.appendListName(updatedCards, lists);
+    return updatedCards;
+  }
+
+  getMonthlyLabelCardNumbersMap(groupedCardMap, cardStatus, cardMonth, labelNames) {
+    let monthlyCards = groupedCardMap[cardStatus][cardMonth]; //array of cards under certain month
+    let labelCardNumbersMap = {
+      "No Label": 0,
+    };
+    monthlyCards.forEach((card) => {
+      //run through each card
+      let labels = card.labels;
+      if (labels.length > 0) {
+        //if got label
+        for (let label of labels) {
+          //each label of current card
+          if (labelNames.includes(label.name)) {
+            let index = labelNames.indexOf(label.name);
+            const labelName = labelNames[index];
+            const cardNumbers = labelCardNumbersMap[labelName] ?? 0;
+
+            labelCardNumbersMap[labelName] = cardNumbers + 1;
+          }
         }
+      } else {
+        labelCardNumbersMap["No Label"] += 1;
+      }
+    });
+    return labelCardNumbersMap;
+  }
+
+  extractAllLabelNames(groupedCardMap) {
+    let labelNames = [];
+    for (let cardStatus in groupedCardMap) {
+      for (let cardMonth in groupedCardMap[cardStatus]) {
+        //put label list into array
+        let cards = groupedCardMap[cardStatus][cardMonth]; //store array of obj created on certain month to letiable
+        _.forEach(cards, (card) => {
+          //each card in the result array under certain month
+          if (card.labels.length > 0) {
+            const filteredLableNames = card.labels
+              .filter((label) => !labelNames.includes(label.name))
+              .map((label) => label.name);
+            labelNames = labelNames.concat(filteredLableNames);
+          }
+        });
+      }
+    }
+    return labelNames;
+  }
+
+  groupByMonth(cards, cardStatus) {
+    return _.groupBy(cards, (card) => {
+      const createdDate = new Date(card.createdDate);
+      return createdDate.toLocaleString("default", { month: "long" });
+    });
+  }
+
+  filterByDateRange(updatedCards, fromDate, toDate) {
+    if (fromDate) {
+      updatedCards = updatedCards.filter((card) => card.createdDate >= fromDate);
     }
 
-    response.json(sortedCard);
-  };
+    if (toDate) {
+      updatedCards = updatedCards.filter((card) => card.createdDate <= toDate);
+    }
+    return updatedCards;
+  }
 
-  axios
-  .get(url)
-  .then(parseTrello)
-  .catch(catchError)
+  filterByLabel(updatedCards, label) {
+    if (label) {
+      updatedCards = updatedCards.filter((card) => {
+        const cardLabels = card.labels;
+        const labelExist = cardLabels.some(
+          (labelOfCard) => labelOfCard.name == label
+        );
+        if (labelExist) {
+          return card;
+        }
+      });
+    }
+    return updatedCards;
+  }
+
+  filterByStatus(updatedCards, status) {
+    const objStatus = {
+      Info: ["General Info", "Template"],
+      Todo: ["Todo"],
+      InProgress: ["In Progress", "Reviewing"],
+      Done: ["Closed", "Classes", "Done"],
+    };
+
+    //Filter
+    //list
+    const arrStatus = objStatus[status];
+    if (status) {
+      updatedCards = updatedCards.filter((card) => arrStatus.includes(card.updatedListName)
+      );
+    }
+    return updatedCards;
+  }
+
+  appendListName(updatedCards, lists) {
+    return updatedCards.map((card) => {
+      const matched = lists.find((list) => card.idList == list.id);
+
+      return {
+        updatedListName: matched?.name,
+        ...card,
+      };
+    });
+  }
+
+  /**
+   * Map created card with date
+   *
+   * @param {array} cards
+   * @param {array} actions
+   * @returns {array}
+   */
+  appendCreatedDate(cards, actions) {
+    return cards.map((card) => {
+      const action = actions.find(
+        (action) =>
+          (action.type == "createCard" || action.type == "copyCard") &&
+          action.data.card.id === card.id
+      );
+      return {
+        ...card,
+        createdDate: action?.date,
+      };
+    });
+  }
 }
 
-  module.exports = { generateReport}
+module.exports = new CardController();
