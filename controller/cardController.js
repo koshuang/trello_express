@@ -17,13 +17,10 @@ class CardController {
 
     updatedCards = this.filterByStatus(updatedCards, status);
 
-    //label
     updatedCards = this.filterByLabel(updatedCards, label);
 
     updatedCards = this.filterByDateRange(updatedCards, from, to);
-    //End of filter
 
-    //Group by list
     let groupedCardMap = _.groupBy(updatedCards, "updatedListName");
 
     //Group by month of card created
@@ -32,33 +29,25 @@ class CardController {
       groupedCardMap[cardStatus] = this.groupByMonth(cards, cardStatus);
     }
 
-    // get all labels
-
     let labelNames = this.extractAllLabelNames(groupedCardMap);
 
     //Group by label
     for (let cardStatus in groupedCardMap) {
       for (let cardMonth in groupedCardMap[cardStatus]) {
         //add list key to sorted array + add value
-        const labelCardsMap = this.getMonthlyLabelCardsMap(groupedCardMap, cardStatus, cardMonth, labelNames);
-
-        groupedCardMap[cardStatus][cardMonth] = labelCardsMap;
-
-        //to display number of cards created
-        for (let labelName in labelCardsMap) {
-          labelCardsMap[labelName] = _.size(
-            labelCardsMap[labelName]
-          );
-        }
+        const labelCardNumbersMap = this.getMonthlyLabelCardNumbersMap(groupedCardMap, cardStatus, cardMonth, labelNames);
+        groupedCardMap[cardStatus][cardMonth] = labelCardNumbersMap;
       }
     }
 
     response.json(groupedCardMap);
   }
 
-  getMonthlyLabelCardsMap(groupedCardMap, cardStatus, cardMonth, labelNames) {
+  getMonthlyLabelCardNumbersMap(groupedCardMap, cardStatus, cardMonth, labelNames) {
     let monthlyCards = groupedCardMap[cardStatus][cardMonth]; //array of cards under certain month
-    let labelCardsMap = {};
+    let labelCardNumbersMap = {
+      "No Label": 0,
+    };
     monthlyCards.forEach((card) => {
       //run through each card
       let labels = card.labels;
@@ -69,25 +58,16 @@ class CardController {
           if (labelNames.includes(label.name)) {
             let index = labelNames.indexOf(label.name);
             const labelName = labelNames[index];
-            const arr = labelCardsMap[labelName] ?? [];
+            const cardNumbers = labelCardNumbersMap[labelName] ?? 0;
 
-            labelCardsMap[labelName] = [
-              ...arr,
-              card.name
-            ];
+            labelCardNumbersMap[labelName] = cardNumbers + 1;
           }
         }
       } else {
-        if ("No Label" in labelCardsMap) {
-          let arr = labelCardsMap["No Label"];
-          arr.push(card.name);
-          labelCardsMap["No Label"] = arr;
-        } else {
-          labelCardsMap["No Label"] = [card.name];
-        }
+        labelCardNumbersMap["No Label"] += 1;
       }
     });
-    return labelCardsMap;
+    return labelCardNumbersMap;
   }
 
   extractAllLabelNames(groupedCardMap) {
