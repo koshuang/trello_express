@@ -1,0 +1,73 @@
+{
+  "id": "63253a7f2db8c204972ac117",
+  "address": null,
+  "badges": {
+    "attachmentsByType": { "trello": { "board": 0, "card": 0 } },
+    "location": false,
+    "votes": 0,
+    "viewingMemberVoted": false,
+    "subscribed": false,
+    "fogbugz": "",
+    "checkItems": 0,
+    "checkItemsChecked": 0,
+    "checkItemsEarliestDue": null,
+    "comments": 0,
+    "attachments": 0,
+    "description": true,
+    "due": null,
+    "dueComplete": false,
+    "start": null
+  },
+  "checkItemStates": null,
+  "closed": false,
+  "coordinates": null,
+  "creationMethod": null,
+  "dueComplete": false,
+  "dateLastActivity": "2022-09-17T07:21:13.093Z",
+  "desc": "- 擺爛？\n- https://github.com/stemmlerjs/ddd-forum\n- https://khalilstemmler.com/articles/solid-principles/solid-typescript/\n\n\n## 責任\n\n- Infra \n  - Controller\n    - 處理 Request \n      - Authentication (有無登入)\n      - Authorization (有無權限)\n      - Validation (資料格式正確？)\n    - 資料組裝成 DTO (Data Transfer Object)\n    - 把 DTO 傳遞給 Service\n    - 把結果轉換成 Response\n  - Adapter / Repository\n    - 處理外部的整合溝通\n      - Database\n      - API\n- Application\n  - UseCase (Service)\n    - 應該是無狀態的\n    - 處理主要的商業邏輯\n    - 呼叫 Adapter / Repository 處理外部的整合溝通\n      \n- Domain\n\n## Truthy value v.s. Falsy value\n// Falsy values\n// const a = false;\n// const a = null;\n// const a = undefined;\n// const a = ''; \n// const a = 0; //int, number\n\n\n// Truthy values\n// object\n// let a = [];\n// let a = '0';\n\nif (a) {\n  console.log('truthy');\n} else {\n  console.log('falsy');\n}\n\n\n## Unit Test\n- 隔離\n\n## TDD (Test Driven Development)\n- Write test first\n- Start implementing\n- Red, Green, Green ",
+  "descData": { "emoji": {} },
+  "due": null,
+  "dueReminder": null,
+  "email": null,
+  "idBoard": "609f488638122f7a82bf31b4",
+  "idChecklists": [],
+  "idLabels": [],
+  "idList": "609f490aee1ec08470dd16a5",
+  "idMembers": [],
+  "idMembersVoted": [],
+  "idShort": 79,
+  "idAttachmentCover": null,
+  "labels": [],
+  "limits": {
+    "attachments": {
+      "perCard": { "status": "ok", "disableAt": 1000, "warnAt": 800 }
+    },
+    "checklists": {
+      "perCard": { "status": "ok", "disableAt": 500, "warnAt": 400 }
+    },
+    "stickers": {
+      "perCard": { "status": "ok", "disableAt": 70, "warnAt": 56 }
+    }
+  },
+  "locationName": null,
+  "manualCoverAttachment": false,
+  "name": "2022-09-17 Meeting",
+  "pos": 14.999954223632812,
+  "shortLink": "pqkN5Ij3",
+  "shortUrl": "https://trello.com/c/pqkN5Ij3",
+  "staticMapUrl": null,
+  "start": null,
+  "subscribed": false,
+  "url": "https://trello.com/c/pqkN5Ij3/79-2022-09-17-meeting",
+  "cover": {
+    "idAttachment": null,
+    "color": null,
+    "idUploadedBackground": null,
+    "size": "normal",
+    "brightness": "dark",
+    "idPlugin": null
+  },
+  "isTemplate": false,
+  "cardRole": null,
+  "attachments": []
+}

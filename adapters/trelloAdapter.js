@@ -1,5 +1,7 @@
 const axiosClient = require("../lib/axiosClient");
 const trelloConfig = require("../config/trello");
+const debug = require('debug');
+const debugLog = debug('trello:axiosAdapter');
 
 class TrelloAdaptor {
   constructor(options, client) {
@@ -33,6 +35,8 @@ class TrelloAdaptor {
 
     const querystring = new URLSearchParams(parameters).toString();
     const url = `https://api.trello.com/1/boards/${this.boardId}?${querystring}`;
+
+    debugLog(`Calling trello API: ${url}`);
 
     return await this.client.get(url);
   }

@@ -1,0 +1,34 @@
+{
+  "id": "63253a7f2db8c204972ac121",
+  "idMemberCreator": "4e72aa9637edc2aa14161eb0",
+  "data": {
+    "card": {
+      "id": "63253a7f2db8c204972ac117",
+      "name": "2022-09-17 Meeting",
+      "idShort": 79,
+      "shortLink": "pqkN5Ij3"
+    },
+    "list": { "id": "609f490aee1ec08470dd16a5", "name": "In Progress" },
+    "board": {
+      "id": "609f488638122f7a82bf31b4",
+      "name": "特訓",
+      "shortLink": "9wmu2tw6"
+    }
+  },
+  "appCreator": { "id": "4ee912fee8a2505d1715191f" },
+  "type": "createCard",
+  "date": "2022-09-17T03:09:51.365Z",
+  "limits": null,
+  "memberCreator": {
+    "id": "4e72aa9637edc2aa14161eb0",
+    "activityBlocked": false,
+    "avatarHash": "7a51db890b79e65c0754ecd5d7734263",
+    "avatarUrl": "https://trello-members.s3.amazonaws.com/4e72aa9637edc2aa14161eb0/7a51db890b79e65c0754ecd5d7734263",
+    "fullName": "Kos Huang",
+    "idMemberReferrer": null,
+    "initials": "KH",
+    "nonPublic": {},
+    "nonPublicAvailable": true,
+    "username": "koshuang"
+  }
+}
