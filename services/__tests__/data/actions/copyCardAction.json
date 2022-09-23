@@ -1,0 +1,40 @@
+{
+  "id": "62be7328974a3958b2252195",
+  "idMemberCreator": "6254e2993689535989828226",
+  "data": {
+    "card": {
+      "id": "62be7328974a3958b2252171",
+      "name": "Jinx-Trello-labelStatus-filter cards by date",
+      "idShort": 72,
+      "shortLink": "AX2rWciW"
+    },
+    "list": { "id": "609f490aee1ec08470dd16a5", "name": "In Progress" },
+    "board": {
+      "id": "609f488638122f7a82bf31b4",
+      "name": "特訓",
+      "shortLink": "9wmu2tw6"
+    },
+    "cardSource": {
+      "id": "62b5e3d7f94b4917f7c18343",
+      "name": "Jinx-Trello-labelStatus-filter cards by labels",
+      "idShort": 71,
+      "shortLink": "kPhpU1BG"
+    }
+  },
+  "appCreator": null,
+  "type": "copyCard",
+  "date": "2022-07-01T04:08:08.587Z",
+  "limits": null,
+  "memberCreator": {
+    "id": "6254e2993689535989828226",
+    "activityBlocked": false,
+    "avatarHash": "68039e35db5db637d819e33581d00748",
+    "avatarUrl": "https://trello-members.s3.amazonaws.com/6254e2993689535989828226/68039e35db5db637d819e33581d00748",
+    "fullName": "JinxLi",
+    "idMemberReferrer": "5b6135a34ba70a621ce3e4e9",
+    "initials": "J",
+    "nonPublic": {},
+    "nonPublicAvailable": true,
+    "username": "jinxli1"
+  }
+}

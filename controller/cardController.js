@@ -1,6 +1,7 @@
 //Declaration
 const _ = require("lodash");
 const { trelloAdapter } = require("../adapters/trelloAdapter");
+const { cardService } = require("../services/cardService");
 const { each } = require("lodash");
 
 class CardController {
@@ -52,7 +53,7 @@ class CardController {
   }
 
   appendDetailInfo(cards, actions, lists) {
-    let updatedCards = this.appendCreatedDate(cards, actions);
+    let updatedCards = cardService.appendCreatedDate(cards, actions);
 
     updatedCards = this.appendListName(updatedCards, lists);
     return updatedCards;
@@ -163,27 +164,6 @@ class CardController {
       return {
         updatedListName: matched?.name,
         ...card,
-      };
-    });
-  }
-
-  /**
-   * Map created card with date
-   *
-   * @param {array} cards
-   * @param {array} actions
-   * @returns {array}
-   */
-  appendCreatedDate(cards, actions) {
-    return cards.map((card) => {
-      const action = actions.find(
-        (action) =>
-          (action.type == "createCard" || action.type == "copyCard") &&
-          action.data.card.id === card.id
-      );
-      return {
-        ...card,
-        createdDate: action?.date,
       };
     });
   }
