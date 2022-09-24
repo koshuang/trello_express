@@ -79,4 +79,81 @@ describe("CardService", () => {
       });
     });
   });
+
+  describe("groupCards()", () => {
+    it("should group cards by list, month and count labels", async () => {
+      const cardService = new CardService();
+      const fakeCard1 = {
+        ...fakeUpdatedCard,
+        updatedListName: "In Progress",
+        labels: [{ name: 'A' }],
+      };
+      const fakeCard2 = {
+        ...fakeUpdatedCard,
+        id: "62d402c2a48edb10e252b577",
+        updatedListName: "Done",
+        labels: [{ name: 'A' }, { name: 'B' }],
+      };
+      const fakeCard3 = {
+        ...fakeUpdatedCard,
+        id: "62d402c2a48edb10e252b578",
+        updatedListName: "Reviewing",
+        labels: [{ name: 'B' }, { name: 'C' }],
+      };
+      const fakeCard4 = {
+        ...fakeUpdatedCard,
+        id: "62d402c2a48edb10e252b568",
+        updatedListName: "Reviewing",
+        labels: [{ name: 'B' }, { name: 'C' }, { name: 'D' }],
+      };
+      const fakeCard5 = {
+        ...fakeUpdatedCard,
+        id: "62d402c2a48edb10e252b558",
+        updatedListName: "Reviewing",
+        labels: [{ name: 'B' }, { name: 'C' }, { name: 'D' }],
+        "createdDate": "2022-08-17T12:38:26.507Z"
+      };
+      const fakeCards = [
+        fakeCard1,
+        fakeCard2,
+        fakeCard3,
+        fakeCard4,
+        fakeCard5,
+      ];
+
+      const updatedCards = cardService.groupCards(fakeCards);
+
+      const expectedResult = {
+        "Done": {
+          July: {
+            A: 1,
+            B: 1,
+            "No Label": 0
+          }
+        },
+        "In Progress": {
+          July: {
+            A: 1,
+            "No Label": 0
+          }
+        },
+        "Reviewing": {
+          August: {
+            B: 1,
+            C: 1,
+            D: 1,
+            "No Label": 0
+          },
+          July: {
+            B: 2,
+            C: 2,
+            D: 1,
+            "No Label": 0
+          }
+        },
+      };
+
+      expect(updatedCards).toEqual(expectedResult);
+    });
+  });
 });
