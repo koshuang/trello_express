@@ -1,9 +1,9 @@
-const { CardService } = require('../cardService');
-const fakeCreateCardAction = require('./data/actions/createCardAction.json');
-const fakeCopyCardAction = require('./data/actions/copyCardAction.json');
-const fakeCard = require('./data/cards/card.json');
-const fakeUpdatedCard = require('./data/cards/updatedCard.json');
-const fakeList = require('./data/lists/list.json')
+const { CardService } = require("../cardService");
+const fakeCreateCardAction = require("./data/actions/createCardAction.json");
+const fakeCopyCardAction = require("./data/actions/copyCardAction.json");
+const fakeCard = require("./data/cards/card.json");
+const fakeUpdatedCard = require("./data/cards/updatedCard.json");
+const fakeList = require("./data/lists/list.json");
 
 describe("CardService", () => {
   describe("appendCreatedDate()", () => {
@@ -36,7 +36,7 @@ describe("CardService", () => {
     it("should append list name", async () => {
       const cardService = new CardService();
       const fakeupdatedCards = [fakeUpdatedCard];
-      const list = [fakeList]
+      const list = [fakeList];
 
       const updatedCards = cardService.appendListName(fakeupdatedCards, list);
       const card = updatedCards[0];
@@ -54,6 +54,7 @@ describe("CardService", () => {
       };
       const fakeUpdatedCard2 = {
         ...fakeUpdatedCard,
+        id: "62d402c2a48edb10e252b577",
         updatedListName: "Done",
       };
       const fakeUpdatedCard3 = {
@@ -61,12 +62,19 @@ describe("CardService", () => {
         id: "62d402c2a48edb10e252b578",
         updatedListName: "Reviewing",
       };
-      const fakeupdatedCards = [fakeUpdatedCard1, fakeUpdatedCard2, fakeUpdatedCard3];
+      const fakeupdatedCards = [
+        fakeUpdatedCard1,
+        fakeUpdatedCard2,
+        fakeUpdatedCard3,
+      ];
 
-      const updatedCards = cardService.filterByStatus(fakeupdatedCards, 'InProgress');
+      const updatedCards = cardService.filterByStatus(
+        fakeupdatedCards,
+        "InProgress"
+      );
 
       expect(updatedCards.length).toBe(2);
-      updatedCards.forEach(card => {
+      updatedCards.forEach((card) => {
         expect(["In Progress", "Reviewing"]).toContain(card.updatedListName);
       });
     });
