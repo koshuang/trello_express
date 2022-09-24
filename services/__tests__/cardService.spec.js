@@ -6,39 +6,42 @@ const fakeUpdatedCard = require('./data/cards/updatedCard.json');
 const fakeList = require('./data/lists/list.json')
 
 describe("CardService", () => {
-  test("appendCreatedDate should append created date for createCard", async () => {
-    const cardService = new CardService();
-    const cards = [fakeCard];
-    const actions = [fakeCreateCardAction];
+  describe("appendCreatedDate()", () => {
+    it("should append created date for createCard", async () => {
+      const cardService = new CardService();
+      const cards = [fakeCard];
+      const actions = [fakeCreateCardAction];
 
-    const updatedCards = cardService.appendCreatedDate(cards, actions);
-    const card = updatedCards[0];
+      const updatedCards = cardService.appendCreatedDate(cards, actions);
+      const card = updatedCards[0];
 
-    expect(card.createdDate).toBe(fakeCreateCardAction.date);
+      expect(card.createdDate).toBe(fakeCreateCardAction.date);
+    });
+
+    it("should append created date for copyCard", async () => {
+      fakeCopyCardAction.data.card.id = fakeCard.id;
+
+      const cardService = new CardService();
+      const cards = [fakeCard];
+      const actions = [fakeCopyCardAction];
+
+      const updatedCards = cardService.appendCreatedDate(cards, actions);
+      const card = updatedCards[0];
+
+      expect(card.createdDate).toBe(fakeCopyCardAction.date);
+    });
   });
 
-  test("appendCreatedDate should append created date for copyCard", async () => {
-    fakeCopyCardAction.data.card.id = fakeCard.id;
+  describe("appendListName()", () => {
+    it("should append list name", async () => {
+      const cardService = new CardService();
+      const fakeupdatedCards = [fakeUpdatedCard];
+      const list = [fakeList]
 
-    const cardService = new CardService();
-    const cards = [fakeCard];
-    const actions = [fakeCopyCardAction];
+      const updatedCards = cardService.appendListName(fakeupdatedCards, list);
+      const card = updatedCards[0];
 
-    const updatedCards = cardService.appendCreatedDate(cards, actions);
-    const card = updatedCards[0];
-
-    expect(card.createdDate).toBe(fakeCopyCardAction.date);
+      expect(card.updatedListName).toBe(fakeList.name);
+    });
   });
-
-  test("appendListName", async () => {
-    const cardService = new CardService();
-    const fakeupdatedCards = [fakeUpdatedCard];
-    const list = [fakeList]
-
-    const updatedCards = cardService.appendListName(fakeupdatedCards, list);
-    const card = updatedCards[0];
-
-    expect(card.updatedListName).toBe(fakeList.name);
-  });
-
 });
