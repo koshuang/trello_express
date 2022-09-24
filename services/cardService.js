@@ -7,6 +7,13 @@
  * @returns {array}
  */
 class CardService {
+  appendDetailInfo(cards, actions, lists) {
+    let updatedCards = this.appendCreatedDate(cards, actions);
+
+    updatedCards = this.appendListName(updatedCards, lists);
+    return updatedCards;
+  }
+
   appendCreatedDate(cards, actions) {
     return cards.map((card) => {
       const action = actions.find(

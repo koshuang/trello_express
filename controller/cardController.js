@@ -12,7 +12,7 @@ class CardController {
 
     const { cards, actions, lists } = board;
 
-    let updatedCards = this.appendDetailInfo(cards, actions, lists);
+    let updatedCards = cardService.appendDetailInfo(cards, actions, lists);
 
     updatedCards = this.filterCards(updatedCards, status, label, from, to);
 
@@ -49,13 +49,6 @@ class CardController {
     updatedCards = this.filterByLabel(updatedCards, label);
 
     updatedCards = this.filterByDateRange(updatedCards, from, to);
-    return updatedCards;
-  }
-
-  appendDetailInfo(cards, actions, lists) {
-    let updatedCards = cardService.appendCreatedDate(cards, actions);
-
-    updatedCards = this.appendListName(updatedCards, lists);
     return updatedCards;
   }
 
