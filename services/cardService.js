@@ -20,6 +20,17 @@ class CardService {
       };
     });
   }
+
+  appendListName(updatedCards, lists) {
+    return updatedCards.map((card) => {
+      const matched = lists.find((list) => card.idList == list.id);
+
+      return {
+        updatedListName: matched?.name,
+        ...card,
+      };
+    });
+  }
 }
 
 module.exports = {

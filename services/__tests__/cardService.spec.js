@@ -2,6 +2,8 @@ const { CardService } = require('../cardService');
 const fakeCreateCardAction = require('./data/actions/createCardAction.json');
 const fakeCopyCardAction = require('./data/actions/copyCardAction.json');
 const fakeCard = require('./data/cards/card.json');
+const fakeUpdatedCard = require('./data/cards/updatedCard.json');
+const fakeList = require('./data/lists/list.json')
 
 describe("CardService", () => {
   test("appendCreatedDate should append created date for createCard", async () => {
@@ -38,4 +40,5 @@ describe("CardService", () => {
 
     expect(card.updatedListName).toBe(fakeList.name);
   });
+
 });

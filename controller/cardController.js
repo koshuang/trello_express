@@ -55,7 +55,7 @@ class CardController {
   appendDetailInfo(cards, actions, lists) {
     let updatedCards = cardService.appendCreatedDate(cards, actions);
 
-    updatedCards = cardService.appendListName(updatedCards, lists);
+    updatedCards = this.appendListName(updatedCards, lists);
     return updatedCards;
   }
 
@@ -155,6 +155,17 @@ class CardController {
       );
     }
     return updatedCards;
+  }
+
+  appendListName(updatedCards, lists) {
+    return updatedCards.map((card) => {
+      const matched = lists.find((list) => card.idList == list.id);
+
+      return {
+        updatedListName: matched?.name,
+        ...card,
+      };
+    });
   }
 }
 
