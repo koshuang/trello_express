@@ -44,4 +44,31 @@ describe("CardService", () => {
       expect(card.updatedListName).toBe(fakeList.name);
     });
   });
+
+  describe("filterByStatus()", () => {
+    it("should filter cards by status", async () => {
+      const cardService = new CardService();
+      const fakeUpdatedCard1 = {
+        ...fakeUpdatedCard,
+        updatedListName: "In Progress",
+      };
+      const fakeUpdatedCard2 = {
+        ...fakeUpdatedCard,
+        updatedListName: "Done",
+      };
+      const fakeUpdatedCard3 = {
+        ...fakeUpdatedCard,
+        id: "62d402c2a48edb10e252b578",
+        updatedListName: "Reviewing",
+      };
+      const fakeupdatedCards = [fakeUpdatedCard1, fakeUpdatedCard2, fakeUpdatedCard3];
+
+      const updatedCards = cardService.filterByStatus(fakeupdatedCards, 'InProgress');
+
+      expect(updatedCards.length).toBe(2);
+      updatedCards.forEach(card => {
+        expect(["In Progress", "Reviewing"]).toContain(card.updatedListName);
+      });
+    });
+  });
 });

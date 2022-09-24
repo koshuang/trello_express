@@ -44,7 +44,7 @@ class CardController {
   }
 
   filterCards(updatedCards, status, label, from, to) {
-    updatedCards = this.filterByStatus(updatedCards, status);
+    updatedCards = cardService.filterByStatus(updatedCards, status);
 
     updatedCards = this.filterByLabel(updatedCards, label);
 
@@ -128,24 +128,6 @@ class CardController {
           return card;
         }
       });
-    }
-    return updatedCards;
-  }
-
-  filterByStatus(updatedCards, status) {
-    const objStatus = {
-      Info: ["General Info", "Template"],
-      Todo: ["Todo"],
-      InProgress: ["In Progress", "Reviewing"],
-      Done: ["Closed", "Classes", "Done"],
-    };
-
-    //Filter
-    //list
-    const arrStatus = objStatus[status];
-    if (status) {
-      updatedCards = updatedCards.filter((card) => arrStatus.includes(card.updatedListName)
-      );
     }
     return updatedCards;
   }
