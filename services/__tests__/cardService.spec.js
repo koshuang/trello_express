@@ -27,4 +27,15 @@ describe("CardService", () => {
 
     expect(card.createdDate).toBe(fakeCopyCardAction.date);
   });
+
+  test("appendListName", async () => {
+    const cardService = new CardService();
+    const fakeupdatedCards = [fakeUpdatedCard];
+    const list = [fakeList]
+
+    const updatedCards = cardService.appendListName(fakeupdatedCards, list);
+    const card = updatedCards[0];
+
+    expect(card.updatedListName).toBe(fakeList.name);
+  });
 });

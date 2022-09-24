@@ -1,0 +1,24 @@
+{
+  "id": "609f490472813c8656dc47fb",
+  "name": "Todo",
+  "closed": false,
+  "idBoard": "609f488638122f7a82bf31b4",
+  "pos": 65535,
+  "subscribed": false,
+  "softLimit": null,
+  "limits": {
+    "cards": {
+      "openPerList": {
+        "status": "ok",
+        "disableAt": 5000,
+        "warnAt": 4000
+      },
+      "totalPerList": {
+        "status": "ok",
+        "disableAt": 1000000,
+        "warnAt": 800000
+      }
+    }
+  },
+  "creationMethod": null
+}
